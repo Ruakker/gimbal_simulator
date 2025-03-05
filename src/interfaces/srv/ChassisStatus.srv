@@ -1,0 +1,9 @@
+float64 center_x
+float64 center_y
+float64 center_z
+float64 velocity_x
+float64 velocity_y
+float64 velocity_z
+float64 velocity_ang
+---
+bool status

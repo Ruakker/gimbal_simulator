@@ -12,6 +12,10 @@ find_package(visualization_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(image_transport REQUIRED)
 find_package(interfaces REQUIRED)
 
 include_directories(
@@ -33,6 +37,9 @@ endif()
 ament_package()
 
 add_executable(chassis src/chassis.cpp)
+add_executable(armor src/armor.cpp)
+add_executable(collisionChecker src/collisionChecker.cpp)
+
 ament_target_dependencies(chassis
   rclcpp
   visualization_msgs
@@ -42,7 +49,38 @@ ament_target_dependencies(chassis
   interfaces
 )
 
+ament_target_dependencies(armor
+  rclcpp
+  visualization_msgs
+  tf2
+  tf2_ros
+  geometry_msgs
+  interfaces
+)
+
+ament_target_dependencies(collisionChecker
+  rclcpp
+  visualization_msgs
+  tf2
+  tf2_ros
+  geometry_msgs
+  image_transport
+)
+
 install(
-  TARGETS chassis
+  TARGETS
+  chassis
+  armor
+  collisionChecker
   DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
 )

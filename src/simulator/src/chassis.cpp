@@ -7,8 +7,6 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
-Armor::Armor(int id, double r, double dz) : id_(id), r_(r), dz_(dz) {}
-
 ChassisNode::ChassisNode() : Node("chassis_node") {
     centerX_ = centerX;
     centerY_ = centerY;
@@ -20,8 +18,6 @@ ChassisNode::ChassisNode() : Node("chassis_node") {
     Ang_ = 0;
     directionX_ = directionY_ = directionZ_ = 1;
     border_ = border;
-    for (int i = 0; i < 4; ++i)
-        armors_.emplace_back(i, armorR[i & 1], armorDz[i & 1]);
 
     // Modify chassis's staus by receiving a request from client
     chassisStatusModifier_ =
@@ -42,52 +38,6 @@ ChassisNode::ChassisNode() : Node("chassis_node") {
                 velocityAng_ = request->velocity_ang;
                 response->status = true;
             });
-
-    armorPublisher_ =
-        this->create_publisher<visualization_msgs::msg::MarkerArray>("armors",
-                                                                     10);
-
-    armorPublisherTimer_ =
-        this->create_wall_timer(std::chrono::milliseconds(10), [this]() {
-            // RCLCPP_INFO(this->get_logger(), "Published armors");
-            auto markerArray = visualization_msgs::msg::MarkerArray();
-            for (int i = 0; i < 4; ++i) {
-                // RCLCPP_INFO(this->get_logger(), "id: %d", i);
-                visualization_msgs::msg::Marker armor;
-                armor.header.frame_id = "chassis";
-                armor.header.stamp = this->now();
-                armor.ns = "armor";
-                armor.id = i;
-                armor.type = visualization_msgs::msg::Marker::CUBE;
-                armor.action = visualization_msgs::msg::Marker::ADD;
-
-                armor.pose.position.x = armors_[i].R() * cos(i * M_PI / 2);
-                armor.pose.position.y = armors_[i].R() * sin(i * M_PI / 2);
-                armor.pose.position.z = centerZ_ + armors_[i].Dz();
-
-                tf2::Quaternion rotation;
-                rotation.setRPY(armorRoll, armorPitch, armorYaw + i * M_PI / 2);
-                armor.pose.orientation.x = rotation.x();
-                armor.pose.orientation.y = rotation.y();
-                armor.pose.orientation.z = rotation.z();
-                armor.pose.orientation.w = rotation.w();
-
-                armor.scale.x = armorLength;
-                armor.scale.y = armorWidth;
-                armor.scale.z = armorHeight;
-
-                armor.color.r = 1.0;
-                armor.color.g = 0.0;
-                armor.color.b = 0.0;
-                armor.color.a = 1.0;
-
-                armor.lifetime = rclcpp::Duration(0, 0);
-
-                markerArray.markers.push_back(armor);
-            }
-            // RCLCPP_INFO(this->get_logger(), "Publishing armors");
-            armorPublisher_->publish(markerArray);
-        });
 
     statusUpdaterTimer_ =
         this->create_wall_timer(std::chrono::milliseconds(10), [this]() {
